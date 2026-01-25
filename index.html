@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Winky Kids - تصفح مجموعتنا الواسعة من ملابس الأطفال عالية الجودة">
+    <title>Winky Kids - الصفحة الرئيسية</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/customer.css">
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/footer.css">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container navbar-content">
+            <div class="navbar-brand"><i class="fas fa-child"></i> Winky Kids</div>
+            <ul class="navbar-nav">
+                <li><a href="index.html" class="nav-link">الصفحة الرئيسية</a></li>
+                <li><a href="admin-login.html" class="nav-link">لوحة التحكم</a></li>
+                <li>
+                    <button onclick="toggleTheme()" class="theme-toggle" aria-label="تبديل الوضع">
+                        <i id="theme-icon" class="fas fa-moon"></i>
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Winky Kids</h1>
+            <p>أفضل الخيارات لأطفالك بأجود الخامات وأفضل الأسعار</p>
+        </div>
+    </section>
+
+    <!-- Filters Section -->
+    <section class="filters-section">
+        <div class="container">
+            <div class="filters-container">
+                <!-- Search -->
+                <div class="filter-group">
+                    <label class="filter-label"><i class="fas fa-search"></i> البحث</label>
+                    <div class="search-box">
+                        <input type="text" id="search-input" class="search-input" placeholder="ابحث عن منتج..."
+                            oninput="searchProducts(this.value)">
+                        <button class="btn btn-primary" onclick="resetFilters()">إعادة تعيين</button>
+                    </div>
+                </div>
+
+                <!-- Category Filter -->
+                <div class="filter-group">
+                    <label class="filter-label"><i class="fas fa-venus-mars"></i> الجنس</label>
+                    <div id="category-filters" class="filter-buttons">
+                        <button class="category-filter active" data-category="all" onclick="filterByCategory('all')">
+                            الكل
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Size Filter -->
+                <div class="filter-group">
+                    <label class="filter-label"><i class="fas fa-ruler"></i> المقاسات</label>
+                    <div id="size-filters" class="filter-buttons">
+                        <button class="size-filter active" data-size="all" onclick="filterBySize('all')">
+                            الكل
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Results Count -->
+                <div class="results-info">
+                    <span id="results-count" class="results-count">تحميل المنتجات...</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Products Section -->
+    <section class="products-section">
+        <div class="container">
+            <div id="products-grid" class="products-grid">
+                <!-- Products will be loaded here -->
+                <div style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 1rem; color: var(--text-secondary);">جاري تحميل المنتجات...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- App Scripts -->
+    <script src="js/supabase-init.js?v=3"></script>
+    <script src="js/products.js?v=3"></script>
+    <script src="js/customer.js?v=3"></script>
+    <script src="js/theme.js"></script>
+
+    <!-- Initialize -->
+    <script>
+        // Load products when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCustomerProducts();
+        });
+    </script>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <!-- About Section -->
+                <div class="footer-section">
+                    <h3><i class="fas fa-info-circle"></i> حول Winky Kids</h3>
+                    <p>
+                        متجرك الموثوق لملابس الأطفال عالية الجودة. نقدم لكم أفضل الخيارات بأجود الخامات وأفضل الأسعار.
+                    </p>
+                    <p>
+                        نسعى دائماً لتوفير تشكيلة متنوعة تناسب جميع الأعمار والأذواق، مع الحرص على راحة وأناقة أطفالكم.
+                    </p>
+                </div>
+
+                <!-- Contact Us Section -->
+                <div class="footer-section">
+                    <h3><i class="fas fa-phone-alt"></i> تواصل معنا</h3>
+
+                    <div class="contact-item">
+                        <i class="fas fa-phone"></i>
+                        <div class="contact-info">
+                            <span class="contact-label">اتصل بنا</span>
+                            <a href="tel:+218928244035" class="contact-value">+218 928244035</a>
+                        </div>
+                    </div>
+
+                    <div class="contact-item">
+                        <i class="fab fa-facebook"></i>
+                        <div class="contact-info">
+                            <span class="contact-label">تابعنا على فيسبوك</span>
+                            <a href="https://www.facebook.com/share/1DnZgwBr24/?mibextid=wwXIfr" target="_blank"
+                                rel="noopener noreferrer" class="contact-value">
+                                Winky Kids
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="social-links">
+                        <a href="https://www.facebook.com/share/1DnZgwBr24/?mibextid=wwXIfr" target="_blank"
+                            rel="noopener noreferrer" class="social-link" aria-label="Facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="https://wa.me/218928244035" target="_blank" rel="noopener noreferrer"
+                            class="social-link" aria-label="WhatsApp">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>© 2026 Winky Kids. جميع الحقوق محفوظة. <span class="heart"></span></p>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>

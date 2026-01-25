@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تفاصيل المنتج - Winky Kids</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/customer.css">
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/footer.css">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container navbar-content">
+            <div class="navbar-brand">😉 Winky Kids</div>
+            <ul class="navbar-nav">
+                <li><a href="index.html" class="nav-link">الصفحة الرئيسية</a></li>
+                <li><a href="admin-login.html" class="nav-link">لوحة التحكم</a></li>
+                <li>
+                    <button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()"
+                        aria-label="تبديل الوضع الليلي">
+                        <i id="theme-icon" class="fas fa-moon"></i>
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Product Details Section -->
+    <section class="product-details">
+        <div class="container">
+            <div style="margin-bottom: 2rem;">
+                <a href="index.html" class="btn btn-secondary">← العودة للمنتجات</a>
+            </div>
+
+            <div id="product-detail-container">
+                <!-- Product details will be loaded here -->
+                <div style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 1rem; color: var(--text-secondary);">جاري تحميل تفاصيل المنتج...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- App Scripts -->
+    <script src="js/supabase-init.js?v=2"></script>
+    <script src="js/products.js?v=2"></script>
+
+    <!-- Product Details Script -->
+    <script>
+        async function loadProductDetails() {
+            // Get product ID from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const productId = urlParams.get('id');
+
+            if (!productId) {
+                document.getElementById('product-detail-container').innerHTML = `
+                    <div class="error-message" style="grid-column: 1 / -1;">
+                        <i class="icon">⚠️</i>
+                        <h3>خطأ</h3>
+                        <p>لم يتم العثور على المنتج</p>
+                        <a href="index.html" class="btn btn-primary" style="margin-top: 1rem;">العودة للرئيسية</a>
+                    </div>
+                `;
+                return;
+            }
+
+            try {
+                const result = await getProductById(productId);
+
+                if (result.success) {
+                    displayProductDetails(result.product);
+                } else {
+                    showError('فشل تحميل المنتج');
+                }
+            } catch (error) {
+                console.error('خطأ في تحميل المنتج:', error);
+                showError('حدث خطأ غير متوقع');
+            }
+        }
+
+        function displayProductDetails(product) {
+            const container = document.getElementById('product-detail-container');
+            const availableSizes = getAvailableSizes(product);
+            const allSizes = product.sizes ? Object.entries(product.sizes) : [];
+
+            const sizesHtml = allSizes.length > 0 ? allSizes.map(([size, quantity]) => {
+                const isAvailable = quantity > 0;
+                return `
+                    <div class="size-item ${isAvailable ? 'available' : 'unavailable'}">
+                        <span class="size-name">${size}</span>
+                        <span class="size-status">${isAvailable ? 'متوفر' : 'غير متوفر'}</span>
+                    </div>
+                `;
+            }).join('') : '<p>لا توجد مقاسات محددة</p>';
+
+            container.innerHTML = `
+                <div class="product-detail-container">
+                    <div class="product-detail-image">
+                        <img src="${product.imageUrl || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22400%22%3E%3Crect fill=%22%23f4a582%22 width=%22400%22 height=%22400%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2260%22%3E📷%3C/text%3E%3C/svg%3E'}" 
+                             alt="${product.name}"
+                             onerror="this.style.opacity='0.7'">
+                        ${availableSizes.length > 0 ? '<span class="badge-available">متوفر</span>' : ''}
+                    </div>
+                    <div class="product-detail-info">
+                        <div class="product-detail-category">${product.category}</div>
+                        <h1 class="product-detail-name">${product.name}</h1>
+                        <div class="product-detail-price">${product.price} جنيه</div>
+                        
+                        <div class="sizes-section">
+                            <h3 class="sizes-title">المقاسات المتوفرة</h3>
+                            <div class="sizes-grid">
+                                ${sizesHtml}
+                            </div>
+                        </div>
+                        
+                        ${availableSizes.length === 0 ? `
+                            <div style="background: rgba(239, 68, 68, 0.1); padding: 1rem; border-radius: 10px; margin-top: 1rem;">
+                                <p style="color: var(--error); font-weight: 600; margin: 0;">
+                                    ⚠️ هذا المنتج غير متوفر حالياً
+                                </p>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function showError(message) {
+            const container = document.getElementById('product-detail-container');
+            container.innerHTML = `
+                <div class="error-message" style="grid-column: 1 / -1;">
+                    <i class="icon">⚠️</i>
+                    <h3>خطأ</h3>
+                    <p>${message}</p>
+                    <a href="index.html" class="btn btn-primary" style="margin-top: 1rem;">العودة للرئيسية</a>
+                </div>
+            `;
+        }
+
+        // Load product details when page loads
+        loadProductDetails();
+    </script>
+
+    <!-- Theme toggle script -->
+    <script src="js/theme.js"></script>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <!-- About Section -->
+                <div class="footer-section">
+                    <h3><i class="fas fa-info-circle"></i> حول Winky Kids</h3>
+                    <p>
+                        متجرك الموثوق لملابس الأطفال عالية الجودة. نقدم لكم أفضل الخيارات بأجود الخامات وأفضل الأسعار.
+                    </p>
+                    <p>
+                        نسعى دائماً لتوفير تشكيلة متنوعة تناسب جميع الأعمار والأذواق، مع الحرص على راحة وأناقة أطفالكم.
+                    </p>
+                </div>
+
+                <!-- Contact Us Section -->
+                <div class="footer-section">
+                    <h3><i class="fas fa-phone-alt"></i> تواصل معنا</h3>
+
+                    <div class="contact-item">
+                        <i class="fas fa-phone"></i>
+                        <div class="contact-info">
+                            <span class="contact-label">اتصل بنا</span>
+                            <a href="tel:+218928244035" class="contact-value">+218 928244035</a>
+                        </div>
+                    </div>
+
+                    <div class="contact-item">
+                        <i class="fab fa-facebook"></i>
+                        <div class="contact-info">
+                            <span class="contact-label">تابعنا على فيسبوك</span>
+                            <a href="https://www.facebook.com/share/1DnZgwBr24/?mibextid=wwXIfr" target="_blank"
+                                rel="noopener noreferrer" class="contact-value">
+                                Winky Kids
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="social-links">
+                        <a href="https://www.facebook.com/share/1DnZgwBr24/?mibextid=wwXIfr" target="_blank"
+                            rel="noopener noreferrer" class="social-link" aria-label="Facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="https://wa.me/218928244035" target="_blank" rel="noopener noreferrer"
+                            class="social-link" aria-label="WhatsApp">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>© 2026 Winky Kids. جميع الحقوق محفوظة. <span class="heart"></span></p>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>

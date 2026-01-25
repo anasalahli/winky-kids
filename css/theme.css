@@ -1,0 +1,72 @@
+/* ============================================
+   Theme Toggle Button - Enhanced & Beautiful
+   ============================================ */
+
+.theme-toggle {
+    background: linear-gradient(135deg, var(--primary-light), var(--primary));
+    border: none;
+    color: white;
+    width: 50px;
+    height: 50px;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    font-size: 1.4rem;
+    box-shadow: 0 4px 15px rgba(244, 165, 130, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+.theme-toggle::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), transparent);
+    border-radius: var(--radius-full);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.theme-toggle:hover::before {
+    opacity: 1;
+}
+
+.theme-toggle:hover {
+    transform: rotate(180deg) scale(1.15);
+    box-shadow: 0 6px 25px rgba(244, 165, 130, 0.6);
+}
+
+.theme-toggle:active {
+    transform: rotate(180deg) scale(1.05);
+}
+
+/* Dark mode specific styling for toggle button */
+[data-theme="dark"] .theme-toggle {
+    background: linear-gradient(135deg, #ffd56b, #ffb74d);
+    box-shadow: 0 4px 15px rgba(255, 213, 107, 0.4);
+}
+
+[data-theme="dark"] .theme-toggle:hover {
+    box-shadow: 0 6px 25px rgba(255, 213, 107, 0.6);
+}
+
+/* Smooth theme transition for all elements */
+body,
+body * {
+    transition: background-color 0.4s ease,
+        color 0.4s ease,
+        border-color 0.4s ease,
+        box-shadow 0.4s ease !important;
+}
+
+/* Prevent transition on page load */
+.no-transition,
+.no-transition * {
+    transition: none !important;
+}

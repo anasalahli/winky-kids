@@ -422,12 +422,14 @@ textarea.form-control {
 }
 
 .navbar-brand {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
     font-weight: 900;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    background: linear-gradient(135deg, #f4a582 0%, #f18a5e 50%, #e86f3d 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    filter: drop-shadow(0 1px 2px rgba(244, 165, 130, 0.4));
+    letter-spacing: 0.5px;
 }
 
 .navbar-nav {

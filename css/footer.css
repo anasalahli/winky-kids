@@ -65,7 +65,7 @@
     align-items: center;
     gap: var(--spacing-md);
     margin-bottom: var(--spacing-md);
-    padding: var(--spacing-md);
+    padding: var(--spacing-lg);
     background: var(--bg-secondary);
     border-radius: var(--radius-md);
     transition: all var(--transition-base);
@@ -122,15 +122,15 @@
 }
 
 .social-link {
-    width: 45px;
-    height: 45px;
+    width: 55px;
+    height: 55px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
     color: white;
     border-radius: var(--radius-md);
-    font-size: 1.25rem;
+    font-size: 1.5rem;
     transition: all var(--transition-base);
     box-shadow: 0 2px 8px rgba(244, 165, 130, 0.3);
 }

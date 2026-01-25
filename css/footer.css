@@ -77,6 +77,22 @@
     box-shadow: 0 4px 12px var(--shadow);
 }
 
+a .contact-item {
+    cursor: pointer;
+    width: 100%;
+}
+
+a .contact-item:hover {
+    background: var(--bg-tertiary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow);
+}
+
+.footer-section>a {
+    display: block;
+    width: 100%;
+}
+
 .contact-item i {
     font-size: 1.5rem;
     color: var(--primary);
@@ -127,12 +143,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    background: rgb(33, 19, 3);
     color: white;
     border-radius: var(--radius-md);
     font-size: 1.5rem;
     transition: all var(--transition-base);
-    box-shadow: 0 2px 8px rgba(244, 165, 130, 0.3);
+    box-shadow: 0 2px 8px rgba(4, 3, 3, 0.3);
+    padding-right: 0.6cm;
+    padding-left: 0.6cm;
 }
 
 .social-link:hover {

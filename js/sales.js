@@ -75,12 +75,15 @@ function openSaleModal(productId) {
         return;
     }
 
+    // إنشاء معرف فريد لهذه النافذة
+    const modalId = `sale-modal-${Date.now()}`;
+
     const modalHTML = `
-        <div class="modal-overlay" id="sale-modal" onclick="if(event.target === this) closeSaleModal()">
+        <div class="modal-overlay" id="${modalId}" onclick="if(event.target === this) closeSaleModal('${modalId}')">
             <div class="modal-content">
                 <div class="modal-header">
                     <h3><i class="fas fa-cash-register"></i> تسجيل بيع - ${product.name}</h3>
-                    <button class="modal-close" onclick="closeSaleModal()">×</button>
+                    <button class="modal-close" onclick="closeSaleModal('${modalId}')">×</button>
                 </div>
                 <div class="modal-body">
                     <p style="margin-bottom: 1rem; color: var(--text-secondary);">
@@ -92,13 +95,13 @@ function openSaleModal(productId) {
                     <div style="margin-top: 1.5rem; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius-md);">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <span>المجموع:</span>
-                            <strong id="sale-total" style="font-size: 1.5rem; color: var(--primary);">0 دينار</strong>
+                            <strong id="sale-total-${modalId}" style="font-size: 1.5rem; color: var(--primary);">0 دينار</strong>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" onclick="closeSaleModal()">إلغاء</button>
-                    <button class="btn btn-primary" onclick="processSale('${productId}')">
+                    <button class="btn btn-secondary" onclick="closeSaleModal('${modalId}')">إلغاء</button>
+                    <button class="btn btn-primary" onclick="processSale('${productId}', '${modalId}')">
                         <i class="fas fa-check"></i> تأكيد البيع
                     </button>
                 </div>
@@ -110,7 +113,7 @@ function openSaleModal(productId) {
 
     // Smooth scroll to the modal itself
     setTimeout(() => {
-        const modal = document.getElementById('sale-modal');
+        const modal = document.getElementById(modalId);
         if (modal) {
             modal.scrollIntoView({
                 behavior: 'smooth',
@@ -120,11 +123,12 @@ function openSaleModal(productId) {
     }, 100);
 
     // إضافة مستمع لحساب المجموع
-    document.querySelectorAll('.sale-qty-input').forEach(input => {
+    const modalElement = document.getElementById(modalId);
+    modalElement.querySelectorAll('.sale-qty-input').forEach(input => {
         input.addEventListener('input', function () {
             const max = parseInt(this.getAttribute('data-max'));
             if (parseInt(this.value) > max) this.value = max;
-            calculateSaleTotal(product.price);
+            calculateSaleTotal(product.price, modalId);
         });
     });
 }
@@ -132,22 +136,25 @@ function openSaleModal(productId) {
 /**
  * حساب مجموع البيع
  */
-function calculateSaleTotal(price) {
-    const inputs = document.querySelectorAll('.sale-qty-input');
+function calculateSaleTotal(price, modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+
+    const inputs = modal.querySelectorAll('.sale-qty-input');
     let totalQty = 0;
     inputs.forEach(input => {
         totalQty += parseInt(input.value) || 0;
     });
     const total = totalQty * price;
-    const totalEl = document.getElementById('sale-total');
+    const totalEl = document.getElementById(`sale-total-${modalId}`);
     if (totalEl) totalEl.textContent = `${total.toFixed(2)} دينار`;
 }
 
 /**
  * إغلاق نافذة البيع
  */
-function closeSaleModal() {
-    const modal = document.getElementById('sale-modal');
+function closeSaleModal(modalId) {
+    const modal = document.getElementById(modalId);
     if (modal) {
         // Add fade out animation
         modal.style.animation = 'fadeOut 0.3s ease forwards';
@@ -170,14 +177,17 @@ document.head.appendChild(style);
 /**
  * معالجة وتسجيل البيع
  */
-async function processSale(productId) {
+async function processSale(productId, modalId) {
     const product = adminProducts.find(p => p.id === productId);
     if (!product) return;
+
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
 
     // جمع الكميات المباعة
     const soldSizes = {};
     let totalSold = 0;
-    document.querySelectorAll('.sale-qty-input').forEach(input => {
+    modal.querySelectorAll('.sale-qty-input').forEach(input => {
         const size = input.getAttribute('data-size');
         const qty = parseInt(input.value) || 0;
         if (qty > 0) {
@@ -219,7 +229,7 @@ async function processSale(productId) {
         localStorage.setItem('sales', JSON.stringify(sales));
 
         // إغلاق النافذة
-        closeSaleModal();
+        closeSaleModal(modalId);
 
         // إعادة تحميل المنتجات
         await loadAdminProducts();

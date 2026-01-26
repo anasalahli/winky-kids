@@ -175,6 +175,9 @@
     transition: all var(--transition-base);
     cursor: pointer;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
 .product-card:hover {
@@ -197,13 +200,13 @@
     position: absolute;
     top: var(--spacing-sm);
     right: var(--spacing-sm);
-    padding: 8px 16px;
+    padding: 6px 12px;
     border-radius: var(--radius-full);
-    font-size: 0.875rem;
+    font-size: 0.75rem;
     font-weight: 700;
     color: white;
     z-index: 10;
-    width: 95px;
+    width: 70px;
     text-align: center;
     white-space: nowrap;
     display: inline-block;
@@ -242,6 +245,9 @@
 
 .product-info {
     padding: var(--spacing-lg);
+    display: flex;
+    flex-direction: column;
+    flex: 1;
 }
 
 .product-name {
@@ -251,6 +257,7 @@
     margin-bottom: var(--spacing-sm);
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -290,6 +297,7 @@
     justify-content: space-between;
     align-items: center;
     gap: var(--spacing-md);
+    margin-top: auto;
 }
 
 .product-price {
@@ -509,15 +517,63 @@
 
 @media (max-width: 480px) {
     .products-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-sm);
+        grid-auto-rows: 1fr;
     }
 
     .product-image {
-        height: 220px;
+        height: 180px;
     }
 
     .product-card {
-        padding: var(--spacing-md);
+        padding: 0;
+    }
+
+    .product-info {
+        padding: var(--spacing-sm);
+    }
+
+    /* تصغير البادج على الموبايل */
+    .badge-available,
+    .badge-unavailable {
+        padding: 4px 8px;
+        font-size: 0.65rem;
+        width: 60px;
+        top: 6px;
+        right: 6px;
+    }
+
+    .product-name {
+        font-size: 0.95rem;
+        margin-bottom: var(--spacing-xs);
+    }
+
+    .product-category {
+        font-size: 0.75rem;
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .product-sizes {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .sizes-label {
+        font-size: 0.75rem;
+    }
+
+    .sizes-list {
+        font-size: 0.8rem;
+    }
+
+    .product-price {
+        font-size: 1.1rem;
+    }
+
+    .btn-view {
+        padding: 0.4rem 0.7rem;
+        font-size: 0.8rem;
     }
 
     .size-badge {

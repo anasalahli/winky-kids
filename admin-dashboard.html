@@ -160,9 +160,10 @@
 
                             <div class="form-group">
                                 <label class="form-label">صورة المنتج</label>
-                                <input type="hidden" id="current-image-url" name="imageUrl">
+                                <input type="hidden" id="product-image-url-hidden" name="imageUrl">
                                 <div class="image-upload-container">
-                                    <input type="file" id="product-image" accept="image/*" style="display: none;">
+                                    <input type="file" id="product-image" name="image" accept="image/*"
+                                        style="display: none;">
                                     <div class="upload-area" id="upload-area">
                                         <div class="upload-icon">
                                             <i class="fas fa-cloud-upload-alt"></i>
@@ -173,7 +174,7 @@
                                     </div>
                                     <div class="preview-area" id="preview-area" style="display: none;">
                                         <img id="image-preview" class="preview-image" src="" alt="معاينة">
-                                        <button type="button" class="remove-image-btn" onclick="removeImage()">
+                                        <button type="button" class="remove-image-btn" onclick="resetForm()">
                                             <i class="fas fa-times"></i>
                                         </button>
                                     </div>
@@ -239,7 +240,7 @@
     <script src="js/auth.js?v=2"></script>
     <script src="js/products.js?v=2"></script>
     <script src="js/admin.js?v=2"></script>
-    <script src="js/image-upload.js"></script>
+
     <script src="js/sales.js"></script>
 </body>
 

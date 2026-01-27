@@ -15,15 +15,39 @@ async function initAdminDashboard() {
     // تحميل المنتجات
     loadAdminProducts();
 
+    // عناصر واجهة المستخدم للصور
+    const uploadArea = document.getElementById('upload-area');
+    const imageInput = document.getElementById('product-image');
+
     // إضافة مستمع للنموذج
     const form = document.getElementById('product-form');
     if (form) {
         form.addEventListener('submit', handleProductSubmit);
     }
 
-    // إضافة مستمع لرفع الصورة
-    const imageInput = document.getElementById('product-image');
-    if (imageInput) {
+    // إعداد منطقة الرفع (Drag & Drop + Click)
+    if (uploadArea && imageInput) {
+        uploadArea.addEventListener('click', () => imageInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type.startsWith('image/')) {
+                imageInput.files = files;
+                handleImagePreview({ target: imageInput });
+            }
+        });
+
         imageInput.addEventListener('change', handleImagePreview);
     }
 }
@@ -138,24 +162,45 @@ function displayAdminProducts() {
  */
 async function handleProductSubmit(e) {
     e.preventDefault();
+    console.log('🚀 Starting product submission...');
 
     const formData = new FormData(e.target);
     const imageFile = formData.get('image');
+    let imageUrl = formData.get('imageUrl') || '';
+
+    console.log('--- Debug Info ---');
+    console.log('Initial imageUrl from form:', imageUrl ? (imageUrl.substring(0, 50) + '...') : 'empty');
+    if (imageFile) {
+        console.log('File selected:', imageFile.name, 'Size:', imageFile.size, 'Type:', imageFile.type);
+    } else {
+        console.log('No file found in formData');
+    }
 
     showLoading(true);
 
     try {
         // رفع الصورة إذا تم اختيارها
-        let imageUrl = formData.get('imageUrl') || '';
         if (imageFile && imageFile.size > 0) {
+            console.log('⏳ Uploading file to Storage...');
             const uploadResult = await uploadImage(imageFile);
+
             if (uploadResult.success) {
                 imageUrl = uploadResult.url;
+                console.log('✅ Upload successful! New URL:', imageUrl);
             } else {
-                showNotification('فشل رفع الصورة', 'error');
+                console.error('❌ Upload failed:', uploadResult.error);
+                showNotification('فشل رفع الصورة: ' + uploadResult.error, 'error');
                 showLoading(false);
                 return;
             }
+        } else {
+            console.log('ℹ️ No new file to upload, using existing URL');
+        }
+
+        // منع إرسال الـ Base64 عمداً
+        if (imageUrl.startsWith('data:')) {
+            console.error('⚠️ Critical: Attempting to save Base64 data!');
+            // لا تمنعه الآن، فقط سجل الخطأ لنعرف إذا كان هذا هو المصدر
         }
 
         // جمع المقاسات
@@ -219,14 +264,17 @@ async function editProduct(productId) {
     document.getElementById('product-name').value = product.name;
     document.getElementById('product-category').value = product.category;
     document.getElementById('product-price').value = product.price;
-    document.getElementById('current-image-url').value = product.imageUrl || '';
+    document.getElementById('product-image-url-hidden').value = product.imageUrl || '';
 
     // عرض الصورة الحالية
+    const uploadArea = document.getElementById('upload-area');
+    const previewArea = document.getElementById('preview-area');
     const imagePreview = document.getElementById('image-preview');
+
     if (imagePreview && product.imageUrl) {
-        imagePreview.innerHTML = `
-            <img src="${product.imageUrl}" alt="صورة المنتج" style="max-width: 200px; border-radius: 8px;">
-        `;
+        imagePreview.src = product.imageUrl;
+        if (uploadArea) uploadArea.style.display = 'none';
+        if (previewArea) previewArea.style.display = 'block';
     }
 
     // ملء المقاسات
@@ -284,20 +332,38 @@ async function deleteProductConfirmed(productId) {
  * معاينة الصورة قبل الرفع
  */
 function handleImagePreview(e) {
-    const file = e.target.files[0];
-    if (!file) return;
+    const file = e.target ? e.target.files[0] : (e.files ? e.files[0] : e);
+    if (!file) {
+        console.log('No file selected in handleImagePreview');
+        return;
+    }
+
+    console.log('Selected file for preview:', file.name, file.size);
+
+    if (file.size > 10 * 1024 * 1024) {
+        alert('حجم الصورة كبير جداً. الحد الأقصى 10 ميجابايت');
+        if (e.target) e.target.value = '';
+        return;
+    }
 
     const reader = new FileReader();
     reader.onload = function (event) {
-        const preview = document.getElementById('image-preview');
-        if (preview) {
-            preview.innerHTML = `
-                <img src="${event.target.result}" alt="معاينة" style="max-width: 200px; border-radius: 8px;">
-            `;
+        const previewImage = document.getElementById('image-preview');
+        const uploadArea = document.getElementById('upload-area');
+        const previewArea = document.getElementById('preview-area');
+
+        if (previewImage) {
+            previewImage.src = event.target.result;
+            console.log('Preview image updated');
         }
+
+        if (uploadArea) uploadArea.style.display = 'none';
+        if (previewArea) previewArea.style.display = 'block';
     };
     reader.readAsDataURL(file);
 }
+
+
 
 /**
  * إعادة تعيين النموذج
@@ -307,10 +373,15 @@ function resetForm() {
     document.getElementById('product-form').reset();
     document.getElementById('submit-btn').textContent = 'إضافة منتج';
 
+    const uploadArea = document.getElementById('upload-area');
+    const previewArea = document.getElementById('preview-area');
     const imagePreview = document.getElementById('image-preview');
-    if (imagePreview) {
-        imagePreview.innerHTML = '';
-    }
+    const imageUrlInput = document.getElementById('product-image-url-hidden');
+
+    if (imagePreview) imagePreview.src = '';
+    if (imageUrlInput) imageUrlInput.value = '';
+    if (uploadArea) uploadArea.style.display = 'block';
+    if (previewArea) previewArea.style.display = 'none';
 }
 
 /**

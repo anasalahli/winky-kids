@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performance Diagnostics - Winky Kids</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🔍 Performance Diagnostics</h1>
+
+    <div class="test-section">
+        <h2>1. التحقق من تحميل الملفات</h2>
+        <div id="files-check"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. اختبار الاتصال بـ Supabase</h2>
+        <button onclick="testSupabaseConnection()">اختبار الاتصال</button>
+        <div id="supabase-test"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. اختبار سرعة جلب المنتجات</h2>
+        <button onclick="testProductFetch()">اختبار السرعة (بدون Cache)</button>
+        <button onclick="testProductFetchWithCache()">اختبار السرعة (مع Cache)</button>
+        <button onclick="clearCache()">مسح Cache</button>
+        <div id="speed-test"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. فحص الـ Cache</h2>
+        <div id="cache-check"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>5. فحص Network</h2>
+        <p>افتح DevTools → Network وأعد تحميل الصفحة الرئيسية</p>
+        <p>ابحث عن:</p>
+        <ul>
+            <li>طلبات كبيرة الحجم (> 200KB)</li>
+            <li>طلبات بطيئة (> 2 seconds)</li>
+            <li>طلبات فاشلة (red)</li>
+        </ul>
+    </div>
+
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- App Scripts -->
+    <script src="js/supabase-init.js?v=999"></script>
+    <script src="js/cache.js?v=999"></script>
+    <script src="js/products.js?v=999"></script>
+
+    <script>
+        // فحص تحميل الملفات
+        function checkFilesLoaded() {
+            const results = [];
+
+            if (typeof supabase !== 'undefined') {
+                results.push({ status: 'success', msg: '✓ supabase-init.js loaded' });
+            } else {
+                results.push({ status: 'error', msg: '✗ supabase-init.js NOT loaded' });
+            }
+
+            if (typeof getCachedProducts === 'function') {
+                results.push({ status: 'success', msg: '✓ cache.js loaded' });
+            } else {
+                results.push({ status: 'error', msg: '✗ cache.js NOT loaded' });
+            }
+
+            if (typeof getAllProductsOptimized === 'function') {
+                results.push({ status: 'success', msg: '✓ products.js loaded (optimized version)' });
+            } else if (typeof getAllProducts === 'function') {
+                results.push({ status: 'warning', msg: '⚠ products.js loaded but OLD version' });
+            } else {
+                results.push({ status: 'error', msg: '✗ products.js NOT loaded' });
+            }
+
+            const container = document.getElementById('files-check');
+            container.innerHTML = results.map(r =>
+                `<div class="test-result ${r.status}">${r.msg}</div>`
+            ).join('');
+        }
+
+        // اختبار الاتصال بـ Supabase
+        async function testSupabaseConnection() {
+            const container = document.getElementById('supabase-test');
+            container.innerHTML = '<div class="test-result info">⏳ جاري الاختبار...</div>';
+
+            try {
+                const start = performance.now();
+                const { data, error, count } = await supabase
+                    .from('products')
+                    .select('id', { count: 'exact', head: true });
+
+                const duration = (performance.now() - start).toFixed(2);
+
+                if (error) {
+                    container.innerHTML = `<div class="test-result error">✗ خطأ: ${error.message}</div>`;
+                } else {
+                    container.innerHTML = `
+                        <div class="test-result success">✓ الاتصال ناجح</div>
+                        <div class="test-result info">عدد المنتجات: ${count || 'غير معروف'}</div>
+                        <div class="test-result info">وقت الاستجابة: ${duration}ms</div>
+                    `;
+                }
+            } catch (error) {
+                container.innerHTML = `<div class="test-result error">✗ خطأ: ${error.message}</div>`;
+            }
+        }
+
+        // اختبار سرعة جلب المنتجات (بدون Cache)
+        async function testProductFetch() {
+            const container = document.getElementById('speed-test');
+            container.innerHTML = '<div class="test-result info">⏳ جاري الاختبار (بدون Cache)...</div>';
+
+            try {
+                const start = performance.now();
+                const result = await getAllProductsOptimized(false, true); // force refresh
+                const duration = (performance.now() - start).toFixed(2);
+
+                if (result.success) {
+                    const status = duration < 2000 ? 'success' : duration < 5000 ? 'warning' : 'error';
+                    container.innerHTML = `
+                        <div class="test-result ${status}">
+                            وقت التحميل: ${duration}ms (${(duration / 1000).toFixed(2)}s)
+                        </div>
+                        <div class="test-result info">عدد المنتجات: ${result.products.length}</div>
+                        <div class="test-result ${status}">
+                            ${duration < 2000 ? '✓ ممتاز!' : duration < 5000 ? '⚠ بطيء نوعاً ما' : '✗ بطيء جداً!'}
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = `<div class="test-result error">✗ فشل: ${result.error}</div>`;
+                }
+            } catch (error) {
+                container.innerHTML = `<div class="test-result error">✗ خطأ: ${error.message}</div>`;
+            }
+        }
+
+        // اختبار سرعة جلب المنتجات (مع Cache)
+        async function testProductFetchWithCache() {
+            const container = document.getElementById('speed-test');
+            container.innerHTML = '<div class="test-result info">⏳ جاري الاختبار (مع Cache)...</div>';
+
+            try {
+                const start = performance.now();
+                const result = await getAllProductsOptimized(true, false);
+                const duration = (performance.now() - start).toFixed(2);
+
+                if (result.success) {
+                    const fromCache = result.fromCache ? 'من الـ Cache' : 'من قاعدة البيانات';
+                    const status = result.fromCache || duration < 2000 ? 'success' : 'warning';
+
+                    container.innerHTML = `
+                        <div class="test-result ${status}">
+                            وقت التحميل: ${duration}ms (${(duration / 1000).toFixed(2)}s)
+                        </div>
+                        <div class="test-result info">المصدر: ${fromCache}</div>
+                        <div class="test-result info">عدد المنتجات: ${result.products.length}</div>
+                    `;
+                } else {
+                    container.innerHTML = `<div class="test-result error">✗ فشل: ${result.error}</div>`;
+                }
+            } catch (error) {
+                container.innerHTML = `<div class="test-result error">✗ خطأ: ${error.message}</div>`;
+            }
+        }
+
+        // مسح الـ Cache
+        function clearCache() {
+            if (typeof clearProductCache === 'function') {
+                clearProductCache();
+                alert('✓ تم مسح الـ Cache');
+                checkCacheStatus();
+            } else {
+                alert('✗ دالة clearProductCache غير متوفرة');
+            }
+        }
+
+        // فحص حالة الـ Cache
+        function checkCacheStatus() {
+            const container = document.getElementById('cache-check');
+
+            try {
+                const cached = localStorage.getItem('winky_products_cache');
+                const timestamp = localStorage.getItem('winky_products_timestamp');
+
+                if (cached && timestamp) {
+                    const products = JSON.parse(cached);
+                    const age = Date.now() - parseInt(timestamp);
+                    const ageMinutes = (age / 60000).toFixed(1);
+                    const valid = age < (5 * 60 * 1000);
+
+                    container.innerHTML = `
+                        <div class="test-result ${valid ? 'success' : 'warning'}">
+                            ${valid ? '✓' : '⚠'} Cache موجود
+                        </div>
+                        <div class="test-result info">عدد المنتجات المحفوظة: ${products.length}</div>
+                        <div class="test-result info">عمر الـ Cache: ${ageMinutes} دقيقة</div>
+                        <div class="test-result ${valid ? 'success' : 'warning'}">
+                            ${valid ? 'صالح للاستخدام' : 'منتهي الصلاحية'}
+                        </div>
+                        <pre>${JSON.stringify(products[0], null, 2).substring(0, 500)}...</pre>
+                    `;
+                } else {
+                    container.innerHTML = '<div class="test-result warning">⚠ لا يوجد Cache</div>';
+                }
+            } catch (error) {
+                container.innerHTML = `<div class="test-result error">✗ خطأ: ${error.message}</div>`;
+            }
+        }
+
+        // تشغيل الفحوصات عند التحميل
+        window.addEventListener('DOMContentLoaded', () => {
+            checkFilesLoaded();
+            checkCacheStatus();
+
+            // فحص Console logs
+            console.log('=== Performance Diagnostics ===');
+            console.log('Supabase client:', typeof supabase !== 'undefined' ? '✓ loaded' : '✗ not loaded');
+            console.log('Cache functions:', typeof getCachedProducts === 'function' ? '✓ loaded' : '✗ not loaded');
+            console.log('Optimized function:', typeof getAllProductsOptimized === 'function' ? '✓ loaded' : '✗ not loaded');
+        });
+    </script>
+</body>
+
+</html>

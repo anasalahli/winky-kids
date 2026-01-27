@@ -15,8 +15,20 @@ let currentFilters = {
  */
 async function loadCustomerProducts() {
     try {
-        const result = await getAllProducts();
+        // عرض حالة التحميل
+        showLoadingState();
+
+        // استخدام الدالة المحسنة مع الـ Cache
+        const result = await getAllProductsOptimized(true, false);
+
         if (result.success) {
+            // عرض رسالة في Console للتتبع
+            if (result.fromCache) {
+                console.log('⚡ Products loaded from cache (instant)');
+            } else {
+                console.log('🔄 Products loaded from database');
+            }
+
             // ترتيب المنتجات: المتوفرة أولاً، ثم غير المتوفرة
             allProducts = result.products.sort((a, b) => {
                 const aAvailable = isProductAvailable(a);
@@ -31,10 +43,33 @@ async function loadCustomerProducts() {
             filteredProducts = [...allProducts];
             displayProducts();
             populateFilters();
+            updateResultsCount();
+        } else {
+            showError('حدث خطأ في تحميل المنتجات');
         }
     } catch (error) {
         console.error('خطأ في تحميل المنتجات:', error);
         showError('حدث خطأ في تحميل المنتجات');
+    }
+}
+
+/**
+ * عرض حالة التحميل
+ */
+function showLoadingState() {
+    const container = document.getElementById('products-grid');
+    if (container) {
+        container.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
+                <div class="spinner"></div>
+                <p style="margin-top: 1rem; color: var(--text-secondary);">جاري تحميل المنتجات...</p>
+            </div>
+        `;
+    }
+
+    const countElement = document.getElementById('results-count');
+    if (countElement) {
+        countElement.textContent = 'جاري التحميل...';
     }
 }
 
@@ -72,6 +107,7 @@ function createProductCard(product) {
             <div class="product-image">
                 <img src="${product.imageUrl || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23f4a582%22 width=%22200%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2220%22 font-family=%22Cairo%22%3E📷%3C/text%3E%3C/svg%3E'}" 
                      alt="${product.name}"
+                     loading="lazy"
                      onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23f4a582%22 width=%22200%22 height=%22200%22/%3E%3C/svg%3E'">
                 ${isAvailable ? '<span class="badge-available">متوفر</span>' : '<span class="badge-unavailable">غير متوفر</span>'}
             </div>

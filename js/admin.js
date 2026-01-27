@@ -35,10 +35,18 @@ async function loadAdminProducts() {
     showLoading(true);
 
     try {
-        const result = await getAllProducts();
+        // استخدام forceRefresh=false للسماح بالـ Cache
+        // يمكن تغييره إلى true لتحديث البيانات دائماً
+        const result = await getAllProductsOptimized(true, false);
+
         if (result.success) {
             adminProducts = result.products;
             displayAdminProducts();
+
+            // عرض رسالة توضيحية إذا كان من الـ Cache
+            if (result.fromCache) {
+                console.log('⚡ Products loaded from cache');
+            }
         } else {
             showNotification('خطأ في تحميل المنتجات', 'error');
         }

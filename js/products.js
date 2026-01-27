@@ -25,6 +25,12 @@ async function addProduct(productData) {
         if (error) throw error;
 
         console.log('تم إضافة المنتج بنجاح:', data[0].id);
+
+        // إلغاء الـ Cache لضمان تحديث البيانات
+        if (typeof invalidateProductCache === 'function') {
+            invalidateProductCache();
+        }
+
         return { success: true, id: data[0].id };
     } catch (error) {
         console.error('خطأ في إضافة المنتج:', error);
@@ -62,6 +68,12 @@ async function updateProduct(id, productData) {
         if (error) throw error;
 
         console.log('تم تحديث المنتج بنجاح:', id);
+
+        // إلغاء الـ Cache لضمان تحديث البيانات
+        if (typeof invalidateProductCache === 'function') {
+            invalidateProductCache();
+        }
+
         return { success: true };
     } catch (error) {
         console.error('خطأ في تحديث المنتج:', error);
@@ -82,6 +94,12 @@ async function deleteProduct(id) {
         if (error) throw error;
 
         console.log('تم حذف المنتج بنجاح:', id);
+
+        // إلغاء الـ Cache لضمان تحديث البيانات
+        if (typeof invalidateProductCache === 'function') {
+            invalidateProductCache();
+        }
+
         return { success: true };
     } catch (error) {
         console.error('خطأ في حذف المنتج:', error);
@@ -90,14 +108,31 @@ async function deleteProduct(id) {
 }
 
 /**
- * جلب جميع المنتجات
+ * جلب جميع المنتجات (نسخة محسنة مع Cache)
+ * @param {boolean} useCache - استخدام الـ Cache إذا كان متاحاً
+ * @param {boolean} forceRefresh - فرض تحديث البيانات حتى لو كان الـ Cache صالحاً
+ * @returns {Object} نتيجة العملية مع المنتجات
  */
-async function getAllProducts() {
+async function getAllProductsOptimized(useCache = true, forceRefresh = false) {
     try {
+        // التحقق من الـ cache أولاً (إذا لم يكن forceRefresh)
+        if (useCache && !forceRefresh) {
+            const cached = getCachedProducts();
+            if (cached) {
+                console.log(`✓ Loaded ${cached.length} products from cache`);
+                return { success: true, products: cached, fromCache: true };
+            }
+        }
+
+        console.log('⏳ Fetching products from Supabase...');
+        const startTime = performance.now();
+
+        // جلب البيانات مع تحديد الحقول المطلوبة فقط
         const { data, error } = await supabase
             .from(collections.products)
-            .select('*')
-            .order('created_at', { ascending: false });
+            .select('id, name, category, price, image_url, sizes, created_at')
+            .order('created_at', { ascending: false })
+            .limit(500); // حد أقصى معقول
 
         if (error) throw error;
 
@@ -107,12 +142,25 @@ async function getAllProducts() {
             imageUrl: product.image_url
         }));
 
-        console.log(`تم جلب ${products.length} منتج`);
-        return { success: true, products };
+        const endTime = performance.now();
+        console.log(`✓ Fetched ${products.length} products in ${(endTime - startTime).toFixed(2)}ms`);
+
+        // حفظ في الـ cache
+        setCachedProducts(products);
+
+        return { success: true, products, fromCache: false };
     } catch (error) {
         console.error('خطأ في جلب المنتجات:', error);
         return { success: false, error: error.message, products: [] };
     }
+}
+
+/**
+ * جلب جميع المنتجات (النسخة الأصلية - للتوافق مع الكود القديم)
+ */
+async function getAllProducts() {
+    // استخدام النسخة المحسنة
+    return await getAllProductsOptimized(true, false);
 }
 
 /**

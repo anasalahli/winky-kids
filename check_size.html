@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Data Size Check</title>
+</head>
+
+<body>
+    <h1>فحص حجم البيانات</h1>
+    <div id="results"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-init.js"></script>
+
+    <script>
+        async function checkDataSize() {
+            const results = document.getElementById('results');
+
+            // فحص localStorage
+            const cached = localStorage.getItem('winky_products_cache');
+            if (cached) {
+                const sizeKB = (cached.length / 1024).toFixed(2);
+                const sizeMB = (cached.length / 1024 / 1024).toFixed(2);
+                results.innerHTML += `<p><strong>حجم الـ Cache:</strong> ${sizeKB} KB (${sizeMB} MB)</p>`;
+
+                try {
+                    const products = JSON.parse(cached);
+                    results.innerHTML += `<p><strong>عدد المنتجات:</strong> ${products.length}</p>`;
+
+                    if (products[0]) {
+                        const firstProduct = JSON.stringify(products[0]);
+                        results.innerHTML += `<p><strong>حجم منتج واحد:</strong> ${(firstProduct.length / 1024).toFixed(2)} KB</p>`;
+                        results.innerHTML += `<pre>${JSON.stringify(products[0], null, 2)}</pre>`;
+                    }
+                } catch (e) {
+                    results.innerHTML += `<p style="color:red">خطأ في قراءة الـ Cache: ${e.message}</p>`;
+                }
+            }
+
+            // جلب من قاعدة البيانات
+            results.innerHTML += '<p>جاري جلب البيانات من Supabase...</p>';
+            const { data, error } = await supabase
+                .from('products')
+                .select('*')
+                .limit(5);
+
+            if (data) {
+                results.innerHTML += `<p><strong>عدد المنتجات (أول 5):</strong> ${data.length}</p>`;
+                const size = JSON.stringify(data).length;
+                results.innerHTML += `<p><strong>حجم 5 منتجات:</strong> ${(size / 1024).toFixed(2)} KB</p>`;
+                results.innerHTML += `<pre>${JSON.stringify(data[0], null, 2)}</pre>`;
+            }
+        }
+
+        checkDataSize();
+    </script>
+</body>
+
+</html>

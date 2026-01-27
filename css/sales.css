@@ -162,3 +162,54 @@
     padding: 0.4rem 0.8rem;
     font-size: 0.8rem;
 }
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .modal-content {
+        width: 95%;
+        margin: 10px;
+    }
+
+    .modal-header h3 {
+        font-size: 1.1rem;
+    }
+
+    .sale-size-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-lg);
+    }
+
+    .sale-size-item label {
+        margin-bottom: 0.25rem;
+        display: block;
+        padding-right: 5px;
+        /* Ensure space for RTL text */
+    }
+
+    .sale-qty-input {
+        min-height: 50px;
+        font-size: 1.5rem;
+        padding: 0.5rem;
+    }
+
+    .modal-footer {
+        flex-direction: column;
+    }
+
+    .modal-footer .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-body {
+        padding: var(--spacing-md);
+    }
+
+    .sale-qty-input {
+        min-height: 60px;
+        /* Even larger for mobile tap targets */
+    }
+}

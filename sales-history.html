@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سجل المبيعات - Winky Kids</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/sales-history.css">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Dashboard Header -->
+        <header class="dashboard-header">
+            <div class="container dashboard-header-content">
+                <h1 class="dashboard-title">
+                    <i class="fas fa-receipt"></i> سجل المبيعات
+                </h1>
+                <div class="dashboard-actions">
+                    <a href="admin-dashboard.html" class="btn btn-secondary">
+                        <i class="fas fa-arrow-right"></i> العودة للوحة التحكم
+                    </a>
+                    <button class="btn btn-logout" onclick="logoutAdmin()">تسجيل خروج</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Statistics Summary -->
+        <section class="stats-section">
+            <div class="container">
+                <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 class="stat-value" id="total-sales-count">0</h3>
+                            <p class="stat-label">إجمالي العمليات</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 class="stat-value" id="active-sales-count">0</h3>
+                            <p class="stat-label">العمليات النشطة</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                            <i class="fas fa-times-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 class="stat-value" id="cancelled-sales-count">0</h3>
+                            <p class="stat-label">العمليات الملغاة</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 class="stat-value" id="active-sales-total">0 دينار</h3>
+                            <p class="stat-label">إجمالي المبيعات النشطة</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sales History Content -->
+        <main class="dashboard-content">
+            <div class="container">
+                <!-- Filters Section -->
+                <div class="filters-card">
+                    <h3 class="filters-title">
+                        <i class="fas fa-filter"></i> فلترة النتائج
+                    </h3>
+                    <div class="filters-grid">
+                        <div class="filter-group">
+                            <label for="filter-status">الحالة</label>
+                            <select id="filter-status" class="form-control">
+                                <option value="all">الكل</option>
+                                <option value="active" selected>النشطة فقط</option>
+                                <option value="cancelled">الملغاة فقط</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="filter-date">التاريخ</label>
+                            <select id="filter-date" class="form-control">
+                                <option value="all">كل الأوقات</option>
+                                <option value="today">اليوم</option>
+                                <option value="week">آخر أسبوع</option>
+                                <option value="month">آخر شهر</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="filter-search">البحث</label>
+                            <input type="text" id="filter-search" class="form-control" placeholder="ابحث عن منتج...">
+                        </div>
+
+                        <!-- <div class="filter-group" style="display: flex; align-items: flex-end;">
+                            <button class="btn btn-secondary" onclick="resetFilters()" style="width: 100%;">
+                                <i class="fas fa-redo"></i> إعادة تعيين
+                            </button>
+                        </div> -->
+                    </div>
+                </div>
+
+                <!-- Sales Table -->
+                <div class="table-card">
+                    <div class="table-header">
+                        <h2 class="form-title">
+                            <i class="fas fa-list"></i> جميع العمليات
+                        </h2>
+                    </div>
+
+                    <div style="overflow-x: auto;">
+                        <table class="sales-table">
+                            <thead>
+                                <tr>
+                                    <th>رقم العملية</th>
+                                    <th>المنتج</th>
+                                    <th>المقاسات</th>
+                                    <th>الكمية</th>
+                                    <th>المبلغ</th>
+                                    <th>التاريخ</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sales-table-body">
+                                <tr>
+                                    <td colspan="8" style="text-align: center; padding: 3rem;">
+                                        <div class="spinner"></div>
+                                        <p style="margin-top: 1rem; color: var(--text-secondary);">جاري تحميل السجل...
+                                        </p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="empty-state" style="display: none; text-align: center; padding: 3rem;">
+                        <i class="fas fa-inbox"
+                            style="font-size: 4rem; color: var(--text-secondary); opacity: 0.5;"></i>
+                        <p style="margin-top: 1rem; color: var(--text-secondary); font-size: 1.1rem;">
+                            لا توجد عمليات بيع بعد
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- App Scripts -->
+    <script src="js/supabase-init.js?v=2"></script>
+    <script src="js/cache.js?v=1"></script>
+    <script src="js/auth.js?v=2"></script>
+    <script src="js/products.js?v=2"></script>
+    <script src="js/sales-db.js"></script>
+    <script src="js/sales-history.js"></script>
+</body>
+
+</html>

@@ -5,7 +5,7 @@
 /**
  * تحديث بطاقات الإحصائيات
  */
-function updateStatistics() {
+async function updateStatistics() {
     // حساب إجمالي قيمة المخزون
     const inventoryValue = adminProducts.reduce((total, product) => {
         const productTotal = Object.values(product.sizes || {})
@@ -13,9 +13,10 @@ function updateStatistics() {
         return total + productTotal;
     }, 0);
 
-    // حساب إجمالي المبيعات من localStorage
-    const sales = JSON.parse(localStorage.getItem('sales') || '[]');
-    const salesValue = sales.reduce((total, sale) => total + (sale.amount || 0), 0);
+    // حساب إجمالي المبيعات من Supabase (العمليات النشطة فقط)
+    const salesResult = await getSalesStatistics();
+    const salesValue = salesResult.success ? salesResult.stats.activeTotalAmount : 0;
+    const totalSoldItems = salesResult.success ? salesResult.stats.activeTotalQty : 0;
 
     // حساب عدد المنتجات
     const totalProducts = adminProducts.length;
@@ -25,11 +26,6 @@ function updateStatistics() {
         const productQty = Object.values(product.sizes || {})
             .reduce((sum, qty) => sum + qty, 0);
         return total + productQty;
-    }, 0);
-
-    // حساب عدد القطع المباعة
-    const totalSoldItems = sales.reduce((total, sale) => {
-        return total + (sale.totalQty || 0);
     }, 0);
 
     // تحديث العرض
@@ -211,22 +207,26 @@ async function processSale(productId, modalId) {
     const result = await updateProduct(productId, { sizes: updatedSizes });
 
     if (result.success) {
-        // تسجيل عملية البيع
+        // تسجيل عملية البيع في Supabase
         const saleAmount = totalSold * product.price;
-        const sale = {
-            id: Date.now().toString(),
+        const saleData = {
+            // لا نرسل id - سيتم إنشاؤه تلقائياً
             productId: productId,
             productName: product.name,
             soldSizes: soldSizes,
             totalQty: totalSold,
             amount: saleAmount,
-            date: new Date().toISOString()
+            date: new Date().toISOString(),
+            status: 'active',
+            cancelledAt: null
         };
 
-        // حفظ في localStorage
-        const sales = JSON.parse(localStorage.getItem('sales') || '[]');
-        sales.push(sale);
-        localStorage.setItem('sales', JSON.stringify(sales));
+        // حفظ في Supabase
+        const saleResult = await addSale(saleData);
+
+        if (!saleResult.success) {
+            showNotification('تم تحديث المخزون ولكن فشل حفظ السجل', 'warning');
+        }
 
         // إغلاق النافذة
         closeSaleModal(modalId);

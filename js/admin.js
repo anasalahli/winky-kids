@@ -25,6 +25,14 @@ async function initAdminDashboard() {
         form.addEventListener('submit', handleProductSubmit);
     }
 
+    // استماع لتغيير الفئة لتحديث المقاسات
+    const categorySelect = document.getElementById('product-category');
+    if (categorySelect) {
+        categorySelect.addEventListener('change', (e) => {
+            updateSizesDisplay(e.target.value);
+        });
+    }
+
     // إعداد منطقة الرفع (Drag & Drop + Click)
     if (uploadArea && imageInput) {
         uploadArea.addEventListener('click', () => imageInput.click());
@@ -50,6 +58,29 @@ async function initAdminDashboard() {
 
         imageInput.addEventListener('change', handleImagePreview);
     }
+}
+
+/**
+ * تحديث حقول المقاسات بناءً على الفئة
+ */
+function updateSizesDisplay(category) {
+    const container = document.querySelector('.sizes-input-group');
+    if (!container) return;
+
+    let sizes = [];
+    if (category === 'مواليد') {
+        sizes = ['0-3 أشهر', '3-6 أشهر', '6-9 أشهر', '9-12 أشهر'];
+    } else {
+        // الفئة الافتراضية هي الأطفال
+        sizes = ['1 سنة', '2 سنة', '3 سنوات', '4 سنوات', '5 سنوات', '6 سنوات'];
+    }
+
+    container.innerHTML = sizes.map(size => `
+        <div class="size-input-wrapper">
+            <label class="size-input-label">${size}</label>
+            <input type="number" class="size-input" data-size="${size}" placeholder="0" min="0">
+        </div>
+    `).join('');
 }
 
 /**
@@ -123,6 +154,7 @@ function displayAdminProducts() {
                     </div>
                 </td>
                 <td data-label="الفئة">${product.category}</td>
+                <td data-label="الجنس">${product.gender || 'غير محدد'}</td>
                 <td data-label="السعر">${product.price} دينار</td>
                 <td data-label="المقاسات">
                     <div class="sizes-container">
@@ -215,6 +247,7 @@ async function handleProductSubmit(e) {
         const productData = {
             name: formData.get('name'),
             category: document.getElementById('product-category').value,
+            gender: document.getElementById('product-gender').value,
             price: formData.get('price'),
             imageUrl: imageUrl,
             sizes: sizes
@@ -263,8 +296,12 @@ async function editProduct(productId) {
     // ملء النموذج
     document.getElementById('product-name').value = product.name;
     document.getElementById('product-category').value = product.category;
+    document.getElementById('product-gender').value = product.gender || '';
     document.getElementById('product-price').value = product.price;
     document.getElementById('product-image-url-hidden').value = product.imageUrl || '';
+
+    // تحديث المقاسات قبل ملئها
+    updateSizesDisplay(product.category);
 
     // عرض الصورة الحالية
     const uploadArea = document.getElementById('upload-area');
@@ -382,6 +419,9 @@ function resetForm() {
     if (imageUrlInput) imageUrlInput.value = '';
     if (uploadArea) uploadArea.style.display = 'block';
     if (previewArea) previewArea.style.display = 'none';
+
+    // إعادة تعيين المقاسات للوضع الافتراضي
+    updateSizesDisplay('أطفال');
 }
 
 /**

@@ -49,9 +49,11 @@ function openSaleModal(productId) {
     const product = adminProducts.find(p => p.id === productId);
     if (!product) return;
 
-    const sizes = Object.entries(product.sizes || {})
-        .filter(([_, qty]) => qty > 0)
-        .map(([size, qty]) => {
+    const availableSizes = getAvailableSizes(product);
+    const sizes = availableSizes
+        .map((s) => {
+            const size = s.size;
+            const qty = s.quantity;
             return `
                 <div class="sale-size-item">
                     <label>${size} (متوفر: ${qty})</label>

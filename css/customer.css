@@ -93,6 +93,7 @@
 }
 
 .category-filter,
+.gender-filter,
 .size-filter {
     padding: 0.625rem 1.25rem;
     border: 2px solid var(--border);
@@ -106,6 +107,7 @@
 }
 
 .category-filter:hover,
+.gender-filter:hover,
 .size-filter:hover {
     border-color: var(--primary);
     color: var(--primary);
@@ -114,6 +116,7 @@
 }
 
 .category-filter.active,
+.gender-filter.active,
 .size-filter.active {
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
     border-color: var(--primary);

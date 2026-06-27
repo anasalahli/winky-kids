@@ -10,6 +10,7 @@ async function addProduct(productData) {
         const product = {
             name: productData.name,
             category: productData.category,
+            gender: productData.gender,
             price: parseFloat(productData.price),
             image_url: productData.imageUrl || '',
             sizes: productData.sizes || {},
@@ -130,7 +131,7 @@ async function getAllProductsOptimized(useCache = true, forceRefresh = false) {
         // جلب البيانات مع تحديد الحقول المطلوبة فقط
         const { data, error } = await supabase
             .from(collections.products)
-            .select('id, name, category, price, image_url, sizes, created_at')
+            .select('id, name, category, gender, price, image_url, sizes, created_at')
             .order('created_at', { ascending: false })
             .limit(500); // حد أقصى معقول
 
@@ -307,8 +308,14 @@ async function getProductsByCategory(category) {
 function isProductAvailable(product) {
     if (!product.sizes) return false;
 
-    // التحقق من وجود أي مقاس بكمية أكبر من 0
-    return Object.values(product.sizes).some(quantity => quantity > 0);
+    const allowedSizes = product.category === 'مواليد' 
+        ? ['0-3 أشهر', '3-6 أشهر', '6-9 أشهر', '9-12 أشهر']
+        : ['1 سنة', '2 سنة', '3 سنوات', '4 سنوات', '5 سنوات', '6 سنوات'];
+
+    // التحقق من وجود أي مقاس مسموح بكمية أكبر من 0
+    return Object.entries(product.sizes)
+        .filter(([size, _]) => allowedSizes.includes(size))
+        .some(([_, quantity]) => quantity > 0);
 }
 
 /**
@@ -317,8 +324,12 @@ function isProductAvailable(product) {
 function getAvailableSizes(product) {
     if (!product.sizes) return [];
 
+    const allowedSizes = product.category === 'مواليد' 
+        ? ['0-3 أشهر', '3-6 أشهر', '6-9 أشهر', '9-12 أشهر']
+        : ['1 سنة', '2 سنة', '3 سنوات', '4 سنوات', '5 سنوات', '6 سنوات'];
+
     return Object.entries(product.sizes)
-        .filter(([size, quantity]) => quantity > 0)
+        .filter(([size, quantity]) => quantity > 0 && allowedSizes.includes(size))
         .map(([size, quantity]) => ({ size, quantity }));
 }
 

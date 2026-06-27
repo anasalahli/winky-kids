@@ -57,9 +57,19 @@
 
                 <!-- Category Filter -->
                 <div class="filter-group">
-                    <label class="filter-label"><i class="fas fa-venus-mars"></i> الجنس</label>
+                    <label class="filter-label"><i class="fas fa-th-list"></i> الفئة</label>
                     <div id="category-filters" class="filter-buttons">
                         <button class="category-filter active" data-category="all" onclick="filterByCategory('all')">
+                            الكل
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Gender Filter -->
+                <div class="filter-group">
+                    <label class="filter-label"><i class="fas fa-venus-mars"></i> الجنس</label>
+                    <div id="gender-filters" class="filter-buttons">
+                        <button class="gender-filter active" data-gender="all" onclick="filterByGender('all')">
                             الكل
                         </button>
                     </div>
@@ -100,10 +110,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <!-- App Scripts -->
-    <script src="js/supabase-init.js?v=3"></script>
-    <script src="js/cache.js?v=1"></script>
-    <script src="js/products.js?v=3"></script>
-    <script src="js/customer.js?v=3"></script>
+    <script src="js/supabase-init.js?v=6"></script>
+    <script src="js/cache.js?v=7"></script>
+    <script src="js/products.js?v=7"></script>
+    <script src="js/customer.js?v=10"></script>
     <script src="js/theme.js"></script>
 
     <!-- Initialize -->

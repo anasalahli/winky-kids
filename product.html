@@ -54,9 +54,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <!-- App Scripts -->
-    <script src="js/supabase-init.js?v=2"></script>
-    <script src="js/cache.js?v=1"></script>
-    <script src="js/products.js?v=2"></script>
+    <script src="js/supabase-init.js?v=6"></script>
+    <script src="js/cache.js?v=6"></script>
+    <script src="js/products.js?v=6"></script>
 
     <!-- Product Details Script -->
     <script>
@@ -94,7 +94,13 @@
         function displayProductDetails(product) {
             const container = document.getElementById('product-detail-container');
             const availableSizes = getAvailableSizes(product);
-            const allSizes = product.sizes ? Object.entries(product.sizes) : [];
+            
+            // فلترة المقاسات المسموحة بناءً على الفئة لتجنب عرض مقاسات الرضع مع الأطفال والعكس
+            const allowedSizes = product.category === 'مواليد' 
+                ? ['0-3 أشهر', '3-6 أشهر', '6-9 أشهر', '9-12 أشهر']
+                : ['1 سنة', '2 سنة', '3 سنوات', '4 سنوات', '5 سنوات', '6 سنوات'];
+
+            const allSizes = product.sizes ? Object.entries(product.sizes).filter(([size, _]) => allowedSizes.includes(size)) : [];
 
             const sizesHtml = allSizes.length > 0 ? allSizes.map(([size, quantity]) => {
                 const isAvailable = quantity > 0;
@@ -116,7 +122,7 @@
                         ${availableSizes.length > 0 ? '<span class="badge-available">متوفر</span>' : ''}
                     </div>
                     <div class="product-detail-info">
-                        <div class="product-detail-category">${product.category}</div>
+                        <div class="product-detail-category">${product.category} - ${product.gender}</div>
                         <h1 class="product-detail-name">${product.name}</h1>
                         <div class="product-detail-price">${product.price} دينار</div>
                         

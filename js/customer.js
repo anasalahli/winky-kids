@@ -6,6 +6,7 @@ let allProducts = [];
 let filteredProducts = [];
 let currentFilters = {
     category: 'all',
+    gender: 'all',
     size: 'all',
     search: ''
 };
@@ -19,7 +20,7 @@ async function loadCustomerProducts() {
         showLoadingState();
 
         // استخدام الدالة المحسنة مع الـ Cache
-        const result = await getAllProductsOptimized(true, false);
+        const result = await getAllProductsOptimized(false, true);
 
         if (result.success) {
             // عرض رسالة في Console للتتبع
@@ -113,7 +114,7 @@ function createProductCard(product) {
             </div>
             <div class="product-info">
                 <h3 class="product-name">${product.name}</h3>
-                <p class="product-category">${product.category}</p>
+                <p class="product-category">${product.category} - ${product.gender || 'غير محدد'}</p>
                 <div class="product-sizes">
                     <span class="sizes-label">المقاسات المتوفرة:</span>
                     <span class="sizes-list">${sizesText}</span>
@@ -144,6 +145,14 @@ function applyFilters() {
         // فلتر الفئة
         if (currentFilters.category !== 'all' && product.category !== currentFilters.category) {
             return false;
+        }
+
+        // فلتر الجنس
+        if (currentFilters.gender !== 'all') {
+            const pGender = (product.gender || '').trim();
+            if (pGender !== currentFilters.gender.trim()) {
+                return false;
+            }
         }
 
         // فلتر المقاس
@@ -178,6 +187,49 @@ function filterByCategory(category) {
     document.querySelectorAll('.category-filter').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.category === category);
     });
+
+    updateSizesVisibility(category);
+}
+
+/**
+ * تحديث ظهور المقاسات بناءً على الفئة
+ */
+function updateSizesVisibility(category) {
+    const sizeButtons = document.querySelectorAll('.size-filter:not([data-size="all"])');
+    let allowedSizes = [];
+    
+    if (category === 'مواليد') {
+        allowedSizes = ['0-3 أشهر', '3-6 أشهر', '6-9 أشهر', '9-12 أشهر'];
+    } else if (category === 'أطفال') {
+        allowedSizes = ['1 سنة', '2 سنة', '3 سنوات', '4 سنوات', '5 سنوات', '6 سنوات'];
+    }
+
+    sizeButtons.forEach(btn => {
+        const size = btn.dataset.size;
+        if (category === 'all' || allowedSizes.includes(size)) {
+            btn.style.display = 'inline-block';
+        } else {
+            btn.style.display = 'none';
+        }
+    });
+
+    // إذا كان المقاس المحدد مخفياً، نلغيه
+    if (currentFilters.size !== 'all' && category !== 'all' && !allowedSizes.includes(currentFilters.size)) {
+        filterBySize('all');
+    }
+}
+
+/**
+ * فلترة حسب الجنس
+ */
+function filterByGender(gender) {
+    currentFilters.gender = gender;
+    applyFilters();
+
+    // تحديث UI الفلاتر
+    document.querySelectorAll('.gender-filter').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.gender === gender);
+    });
 }
 
 /**
@@ -207,17 +259,20 @@ function searchProducts(query) {
 function resetFilters() {
     currentFilters = {
         category: 'all',
+        gender: 'all',
         size: 'all',
         search: ''
     };
 
     // إعادة تعيين UI
-    document.querySelectorAll('.category-filter, .size-filter').forEach(btn => {
+    document.querySelectorAll('.category-filter, .size-filter, .gender-filter').forEach(btn => {
         btn.classList.remove('active');
     });
-    document.querySelectorAll('[data-category="all"], [data-size="all"]').forEach(btn => {
+    document.querySelectorAll('[data-category="all"], [data-size="all"], [data-gender="all"]').forEach(btn => {
         btn.classList.add('active');
     });
+
+    updateSizesVisibility('all');
 
     const searchInput = document.getElementById('search-input');
     if (searchInput) searchInput.value = '';
@@ -249,7 +304,25 @@ function populateFilters() {
             </button>
             ${categories.map(cat => `
                 <button class="category-filter" data-category="${cat}" onclick="filterByCategory('${cat}')">
-                    ${cat}
+                    ${cat === 'أطفال' ? '<i class="fas fa-child"></i> ' : ''}${cat === 'مواليد' ? '<i class="fas fa-baby"></i> ' : ''}${cat}
+                </button>
+            `).join('')}
+        `;
+    }
+
+    // الأجناس ثابتة دائماً
+    const genders = ['أولاد', 'بنات'];
+
+    // تحديث UI الجنس
+    const genderContainer = document.getElementById('gender-filters');
+    if (genderContainer) {
+        genderContainer.innerHTML = `
+            <button class="gender-filter active" data-gender="all" onclick="filterByGender('all')">
+                الكل
+            </button>
+            ${genders.map(gender => `
+                <button class="gender-filter" data-gender="${gender}" onclick="filterByGender('${gender}')">
+                    ${gender === 'أولاد' ? '<i class="fas fa-male"></i> ' : ''}${gender === 'بنات' ? '<i class="fas fa-female"></i> ' : ''}${gender}
                 </button>
             `).join('')}
         `;

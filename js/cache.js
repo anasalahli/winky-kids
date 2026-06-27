@@ -2,8 +2,8 @@
 // Cache Management Module - OPTIMIZED
 // ============================================
 
-const CACHE_KEY = 'winky_products_cache';
-const CACHE_TIMESTAMP_KEY = 'winky_products_timestamp';
+const CACHE_KEY = 'winky_products_cache_v4';
+const CACHE_TIMESTAMP_KEY = 'winky_products_timestamp_v4';
 const CACHE_DURATION = 5 * 60 * 1000; // 5 دقائق
 
 /**
